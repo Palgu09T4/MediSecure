@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab Technician Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/lab.css' %}">
+</head>
+<body>
+    <button onclick="window.history.back()">Go Back</button>
+    <h1>🔬 Lab Technician Dashboard</h1>
+    <p>Welcome, Technician! Manage and upload test reports here.</p>
+
+    <hr>
+<h2>Pending Lab Test Requests</h2>
+<ul>
+  {% for req in pending_lab_requests %}
+    <li>
+      Patient: {{ req.patient.get_full_name|default:req.patient.username }} |
+      Requested by Dr. {{ req.doctor.get_full_name|default:req.doctor.username }} on {{ req.requested_at|date:"Y-m-d H:i" }}
+      <form method="POST" enctype="multipart/form-data" style="margin-top:10px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_lab_result">
+        <input type="hidden" name="test_request_id" value="{{ req.id }}">
+        <label>Upload Result File:</label>
+        <input type="file" name="result_file"><br>
+        <label>Or Enter Result Text:</label><br>
+        <textarea name="result_text" rows="4" cols="50" placeholder="Enter lab result details"></textarea><br>
+        <button type="submit">Submit Lab Result</button>
+      </form>
+    </li>
+  {% empty %}
+    <li>No pending lab test requests.</li>
+  {% endfor %}
+</ul>
+
+<h2>Completed Lab Test Results</h2>
+<ul>
+  {% for result in completed_lab_results %}
+    <li>
+      Patient: {{ result.test_request.patient.get_full_name|default:result.test_request.patient.username }} |
+      Uploaded: {{ result.uploaded_at|date:"Y-m-d H:i" }} |
+      <strong>Result Text:</strong> {{ result.result_text }} |
+      <a href="{% url 'view_lab_result' result.test_request.id %}">View Result</a>
+      {% if result.result_file %}
+        | <a href="{{ result.result_file.url }}">Download File</a>
+      {% endif %}
+    </li>
+  {% empty %}
+    <li>No completed lab test results yet.</li>
+  {% endfor %}
+</ul>
+
+<form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+</body>
+</html>

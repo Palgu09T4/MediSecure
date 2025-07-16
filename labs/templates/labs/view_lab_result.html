@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Lab Test Result</h2>
+
+<p><strong>Patient:</strong> {{ test_request.patient.get_full_name }}</p>
+<p><strong>Doctor:</strong> {{ test_request.doctor.get_full_name }}</p>
+<p><strong>Requested On:</strong> {{ test_request.requested_at|date:"Y-m-d H:i" }}</p>
+<p><strong>Status:</strong> {{ test_request.get_status_display }}</p>
+
+{% if message %}
+    <p>{{ message }}</p>
+{% else %}
+    <h3>Results:</h3>
+    
+    {% if lab_result.result_text %}
+        <p>{{ lab_result.result_text }}</p>
+    {% endif %}
+    
+    {% if lab_result.result_file %}
+        <p>
+            <a href="{{ lab_result.result_file.url }}" target="_blank">Download Result File</a>
+        </p>
+    {% endif %}
+    
+    {% if not lab_result.result_text and not lab_result.result_file %}
+        <p>No result details available.</p>
+    {% endif %}
+{% endif %}
+
+<a href="{% url 'patient_dashboard' %}">Back to Dashboard</a>
+{% endblock %}

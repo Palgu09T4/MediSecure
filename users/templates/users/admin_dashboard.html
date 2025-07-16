@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+</head>
+<body>
+    <div class="admin-container">
+        <h2>Welcome, Admin {{ request.user.username }}!</h2>
+        <ul>
+            <li><a href="/admin/">Go to Django Admin</a></li>
+        </ul>
+        <form method="post" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <button type="submit" class="logout-link">Logout</button>
+</form>
+    </div>
+</body>
+</html>

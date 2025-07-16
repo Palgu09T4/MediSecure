@@ -1,0 +1,112 @@
+<!--patients_dashboard-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/patient.css' %}">
+</head>
+<body>
+    <button onclick="window.history.back()">Go Back</button>
+
+    <div class="container">
+        <h1>🧍‍♂️ Patient Dashboard</h1>
+        <p>Welcome, dear patient!</p>
+
+        <h2>Your Diagnoses</h2>
+        <ul>
+            {% for diagnosis in request.user.diagnoses.all %}
+                <li>{{ diagnosis.created_at|date:"Y-m-d H:i" }} — {{ diagnosis.notes }}</li>
+            {% empty %}
+                <li>No diagnoses yet.</li>
+            {% endfor %}
+        </ul>
+
+        <h2>Your Prescriptions</h2>
+        <ul>
+            {% for prescription in request.user.prescriptions.all %}
+                <li>
+                    {{ prescription.uploaded_at|date:"Y-m-d H:i" }} —
+                    {% if prescription.file and prescription.text %}
+                        <a href="{{ prescription.file.url }}" target="_blank">View Prescription File</a> |
+                        <a href="{{ prescription.file.url }}" download>Download Prescription</a><br>
+                        <pre>{{ prescription.text }}</pre>
+                    {% elif prescription.file %}
+                        <a href="{{ prescription.file.url }}" target="_blank">View Prescription File</a> |
+                        <a href="{{ prescription.file.url }}" download>Download Prescription</a>
+                    {% elif prescription.text %}
+                        <pre>{{ prescription.text }}</pre>
+                    {% else %}
+                        No prescription details available.
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li>No prescriptions uploaded yet.</li>
+            {% endfor %}
+        </ul>
+
+        
+
+        <h2>Lab Test Results</h2>
+        <ul>
+            {% for result in lab_results %}
+                <li>
+                    <strong>Uploaded:</strong> {{ result.uploaded_at|date:"Y-m-d H:i" }}<br>
+                    <strong>Result Text:</strong> {{ result.result_text|default:"Not provided" }}<br>
+                    {% if result.result_file %}
+                        <a href="{{ result.result_file.url }}" download>Download Lab Result File</a>
+                    {% else %}
+                        No file uploaded.
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li>No lab results available.</li>
+            {% endfor %}
+        </ul>
+
+        <h2>📅 Appointment Request</h2>
+        <p>Request a new appointment. A doctor will be automatically assigned based on your symptoms.</p>
+
+        <form method="post" action="{% url 'patient_dashboard' %}">
+            {% csrf_token %}
+
+            <label>Select your primary symptom:</label><br>
+            <select name="symptoms" required>
+                <option value="">-- Select Symptom --</option>
+                <option value="fever">Fever</option>
+                <option value="cough">Cough</option>
+                <option value="headache">Headache</option>
+                <option value="diabetes">Diabetes</option>
+                <option value="chest pain">Chest Pain</option>
+                <!-- Add more symptoms as needed -->
+            </select><br><br>
+
+            <label>Preferred Appointment Date</label><br>
+            <input type="date" name="preferred_date" required><br><br>
+
+            <label>Preferred Time</label><br>
+            <input type="time" name="preferred_time" required><br><br>
+
+            <button type="submit">Request Appointment</button>
+        </form>
+        
+        {% if appointment_requested %}
+            <div class="success-message">
+                ✅ Appointment successfully created with Dr. {{ assigned_doctor }} ({{ specialty }})
+            </div>
+        {% elif error %}
+            <div class="error-message">
+                ❌ {{ error }}
+            </div>
+        {% endif %}
+        <br>
+
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+
+    </div>
+</body>
+</html>

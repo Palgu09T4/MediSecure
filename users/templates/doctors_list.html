@@ -1,0 +1,12 @@
+<h2>Available Doctors</h2>
+<ul>
+  {% for doctor in doctors %}
+    <li>
+      <strong>Username:</strong> {{ doctor.user.username }} |
+      <strong>Specialty:</strong> {{ doctor.specialty }} |
+      <strong>Experience:</strong> {{ doctor.experience }} years
+    </li>
+  {% empty %}
+    <li>No doctors available.</li>
+  {% endfor %}
+</ul>

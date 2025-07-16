@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/doctor.css' %}">
+</head>
+<body>
+
+<!-- Go Back Button -->
+<button onclick="window.history.back()">Go Back</button>
+<h1>👨‍⚕️ Doctor Dashboard</h1>
+<div style="color: green;">Welcome, Doctor!</div>
+
+<h2>Your Appointments</h2>
+<ul>
+  {% for appointment in appointments %}
+    <li>
+      <strong>{{ appointment.patient.get_full_name|default:appointment.patient.username }}</strong> —
+      {{ appointment.preferred_date }} at {{ appointment.preferred_time }} —
+      <em>Symptoms: {{ appointment.symptoms }}</em> —
+      
+    </li>
+  {% empty %}
+    <li>No approved appointments yet.</li>
+  {% endfor %}
+</ul>
+
+<h2>Select Patient</h2>
+<form method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="select_patient">
+  <label for="selected_patient">Choose Patient:</label>
+  <select name="selected_patient" id="selected_patient" required>
+    <option value="">--Select--</option>
+    {% for patient in all_patients %}
+      <option value="{{ patient.id }}" {% if selected_patient and selected_patient.id == patient.id %}selected{% endif %}>
+        {{ patient.get_full_name|default:patient.username }}
+      </option>
+    {% endfor %}
+  </select>
+  <button type="submit">View Patient Records</button>
+</form>
+
+{% if selected_patient %}
+  <h3>Patient: {{ selected_patient.get_full_name|default:selected_patient.username }}</h3>
+
+  <h4>Add Diagnosis</h4>
+  <form method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add_diagnosis">
+    <input type="hidden" name="selected_patient" value="{{ selected_patient.id }}">
+    <textarea name="diagnosis_notes" rows="4" cols="50" placeholder="Enter diagnosis notes" required></textarea><br>
+    {% if diagnosis_saved %}
+      <button type="submit" disabled>Diagnosis Added</button>
+      <p style="color:green;">Diagnosis saved successfully.</p>
+    {% else %}
+      <button type="submit">Add Diagnosis</button>
+    {% endif %}
+  </form>
+
+  <h4>Upload or Type Prescription</h4>
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="upload_prescription">
+  <input type="hidden" name="selected_patient" value="{{ selected_patient.id }}">
+
+  <!-- File Upload -->
+  <label>Upload Prescription File (Optional):</label><br>
+  <input type="file" name="prescription_file"><br><br>
+
+  <!-- Text Prescription -->
+  <label>Or Type Prescription:</label><br>
+  <textarea name="typed_prescription" rows="4" cols="50" placeholder="Enter prescription text"></textarea><br>
+
+  {% if upload_success %}
+    <button type="submit" disabled>Prescription Uploaded</button>
+    <p style="color:green;">Prescription uploaded successfully.</p>
+  {% else %}
+    <button type="submit">Submit Prescription</button>
+  {% endif %}
+</form>
+
+  <h4>Previous Diagnosis</h4>
+  <ul>
+    {% for diagnosis in previous_diagnoses %}
+      <li>{{ diagnosis.created_at|date:"Y-m-d H:i" }} — {{ diagnosis.notes }}</li>
+    {% empty %}
+      <li>No diagnoses available.</li>
+    {% endfor %}
+  </ul>
+
+  <h4>Previous Prescriptions</h4>
+  <ul>
+    {% for prescription in previous_prescriptions %}
+      <li>
+  {{ prescription.uploaded_at|date:"Y-m-d H:i" }} —
+  {% if prescription.file %}
+    <a href="{{ prescription.file.url }}" target="_blank">
+      View File ({{ prescription.file.name|slice:"15:" }})
+    </a><br>
+  {% endif %}
+  {% if prescription.text %}
+    <strong>Text:</strong> {{ prescription.text }}<br>
+  {% endif %}
+</li>
+    {% empty %}
+      <li>No prescriptions uploaded.</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+{% if selected_patient %}
+<h4>Request Lab Test</h4>
+<form method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="request_lab_test">
+  <input type="hidden" name="selected_patient" value="{{ selected_patient.id }}">
+  <label>Symptoms/Notes:</label><br>
+  <textarea name="lab_test_notes" rows="3" placeholder="Enter symptoms or test details"></textarea><br>
+  <button type="submit">Send Lab Test Request</button>
+</form>
+{% endif %}
+
+<h4>Your Lab Test Requests</h4>
+<ul>
+  {% for req in doctor_lab_requests %}
+    <li>
+      Patient: {{ req.patient.get_full_name|default:req.patient.username }} |
+      Status: {{ req.get_status_display }} |
+      Requested: {{ req.requested_at|date:"Y-m-d H:i" }}
+      Technician: {% if req.technician %}{{ req.technician.get_full_name|default:req.technician.username }}{% else %}<em>Not assigned</em>{% endif %}
+
+      
+      {% if req.result %}
+        {% if req.result.result_text %}
+          <strong>Result Text:</strong>
+          <pre>{{ req.result.result_text }}</pre>
+        {% endif %}
+        
+        {% if req.result.result_file %}
+          <a href="{{ req.result.result_file.url }}" download>Download Lab Result File</a>
+        {% endif %}
+      {% else %}
+        <em>No lab test result uploaded yet.</em>
+      {% endif %}
+    </li>
+  {% empty %}
+    <li>No lab test requests sent yet.</li>
+  {% endfor %}
+</ul>
+
+
+
+
+<br>
+<form method="post" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <button type="submit">Logout</button>
+</form>
+
+</body>
+</html>

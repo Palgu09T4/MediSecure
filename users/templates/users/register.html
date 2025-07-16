@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head><title>Register</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+  <script src="{% static 'js/register.js' %}"></script>
+</head>
+<body>
+    <button onclick="window.history.back()">Go Back</button>
+  <h2>Register</h2>
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="text" name="username" placeholder="Username"><br>
+    <input type="email" name="email" placeholder="Email"><br>
+    <input type="password" name="password" placeholder="Password"><br>
+    <select name="role">
+      <option value="">Select Role</option>
+      <option value="Doctor">Doctor</option>
+      <option value="Patient">Patient</option>
+      <option value="Lab Technician">Lab Technician</option>
+    </select><br>
+
+     <div id="doctor_fields" style="display: none;">
+      <label for="specialty">Specialty:</label><br>
+      <select name="specialty">
+        <option value="General Physician">General Physician</option>
+        <option value="Cardiologist">Cardiologist</option>
+        <option value="Pulmonologist">Pulmonogist</option>
+        <option value="Dermatologist">Dermatologist</option>
+        <option value="Pediatrician">Pediatrician</option>
+        <option value="Orthopedic">Orthopedic</option>
+      </select><br>
+
+      <input type="number" name="experience" placeholder="Years of Experience" min="0"><br>
+    </div>
+
+    <button type="submit">Register</button>
+  </form>
+</body>
+</html>
